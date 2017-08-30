@@ -1,6 +1,6 @@
 {
   "name": "multitab_idle_timer",
-  "version": "1.0.1",
+  "version": "1.2.0",
   "description": "Multi Tabs Idle Timer detection",
   "main": "lib/index.js",
   "scripts": {
@@ -31,7 +31,7 @@
   "bugs": {
     "url": "https://github.com/khakurel/multitab_idle_timer/issues"
   },
-  "homepage": "https://github.com/khakurel/<PACKAGENAME>#readme",
+  "homepage": "https://github.com/khakurel/multitab_idle_timer#readme",
   "devDependencies": {
     "babel-cli": "^6.11.4",
     "babel-core": "^6.11.4",

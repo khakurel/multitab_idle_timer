@@ -1,7 +1,5 @@
 import {Store} from 'simple_localstorage_api';
-import {EventEmitter} from  './event_emitter';
-
-const store = new Store();
+import {EventEmitter} from './event_emitter';
 
 export class IdleTimer extends EventEmitter {
 
@@ -9,11 +7,13 @@ export class IdleTimer extends EventEmitter {
         super();
         this.heartbeat = setting.heartbeat || 500;
         this.setting = setting;
-        this.timeOut = (setting.timeout - (setting.alertBefore || 0)) * 60000;
+        this.warnBefore = (setting.warnBefore || 0) * 60000;
+        this.timeOut = setting.timeout * 60000;
         this.events = 'click,mousemove,mouseenter,keydown,scroll,mousedown,touchmove,touchstart';
         this.visibilityEvents = 'visibilitychange,webkitvisibilitychange,mozvisibilitychange,msvisibilitychange';
-        this.store = store;
+        this.store = new Store(setting.store || 'local');
         this.visible = false;
+        this._warned = false;
     }
 
 
@@ -61,6 +61,7 @@ export class IdleTimer extends EventEmitter {
         if (this.idle) {
             this._call('Active');
             this.idle = false;
+            this._warned = false;
         }
         clearInterval(this.idleTimer);
         this.schedule();
@@ -89,7 +90,7 @@ export class IdleTimer extends EventEmitter {
         if (toString.call(method) === '[object Function]') {
             method.call();
         }
-        this.emit(type.toLowerCase());
+        this.emit(type.toLowerCase(), this);
 
     }
 
@@ -97,6 +98,7 @@ export class IdleTimer extends EventEmitter {
         clearInterval(this.idleTimer);
         this.clearEvents();
         this.store.clear('idleTimer');
+        this._warned = false;
         this._init = false;
         return this;
     }
@@ -105,8 +107,17 @@ export class IdleTimer extends EventEmitter {
     isExpired() {
         const timeNow = IdleTimer.now(),
             timeout = this.store.find('idleTimer').lastActivity;
+        const timeEscaped = (timeNow - timeout);
 
-        return (timeNow - timeout) > this.timeOut;
+
+        if (this.setting.warnBefore) {
+            const shouldWarn = (timeEscaped > (this.timeOut - this.warnBefore));
+            if (!this._warned && shouldWarn) {
+                this._call('warn');
+            }
+        }
+
+        return timeEscaped > this.timeOut;
     }
 
 
